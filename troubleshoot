@@ -1,0 +1,105 @@
+#include <iomanip>
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+
+using namespace std;
+
+class drawGrid	//Draws the grid in the console
+{
+public:
+	void grid(int arraySize, int grid[10][10], int curX, int curY)
+	{
+		for (int i = 0; i < arraySize; ++i)
+		{
+			for (int h = 0; h < arraySize; ++h)
+			{
+				if (grid[h][i] == 0) cout << "[O] ";
+				else if (h == curX && i == curY) cout << "[X] ";
+				else if (grid[h][i] == 2) cout << "[B] ";
+				else cout << "[ ] ";
+			}
+			cout <<"\n\n";
+		}
+		cout << "\n\n\n";
+	}
+};
+
+class explosive  //Meant to set an object on a tile by switching it to a value of '2' and remove the object after 5 ticks
+{
+	int timer = 5;
+public:
+	int *pointer;
+	int curX, curY;
+
+	void createExplosive()
+	{
+		cout << *pointer << ' ' << *(pointer+1);
+		//grid[curX][curY] = 2;
+		//cout << curX << ' ' << curY << ' ' << grid[0][0];
+	}
+	void tick()
+	{
+		--timer;
+		if (timer == 0) explode();
+	}
+	void explode()
+	{
+		removeExplosive();
+	}
+	void removeExplosive()
+	{
+
+	}
+};
+
+void generate(int grid[10][10], int pathLength)	//Generates a random path of tiles that are passable
+{
+	int curX = 0, curY = 0;
+	grid[curX][curY] = 1;
+	for (int i = 0; i < pathLength; ++i)
+	{
+		int h = 0;
+		bool exitBool = false;
+		do
+		{
+			exitBool = true;
+			++h;
+			int a = rand() % 6;
+			if ((a == 0 || a == 1 || a == 2) && curX != 9 && grid[curX + 1][curY] == 0) ++curX;
+			else if ((a == 3) && curX != 0 && grid[curX - 1][curY] == 0) --curX;
+			else if ((a == 4 || a == 5) && curY != 9) ++curY;
+			else exitBool = false;
+		} while (!exitBool);
+		grid[curX][curY] = 1;
+	}
+}
+
+int main()
+{
+	srand(time(NULL));
+	int grid[10][10] = {0};
+	int curX = 0, curY = 0, arraySize = size(grid), pathLength = 17;
+	bool explosiveSet = { false };
+
+	generate(grid, pathLength);
+
+	drawGrid draw;
+	explosive exp;
+
+	bool exitBool = false;		//Main loop
+	do{
+		char a; cin >> a;
+		if (a == 'w' && curY != 0 && grid[curX][curY - 1]) --curY;
+		else if (a == 'a' && curX != 0 && grid[curX - 1][curY]) --curX;
+		else if (a == 's' && curY != 9 && grid[curX][curY + 1]) ++curY;
+		else if (a == 'd' && curX != 9 && grid[curX + 1][curY]) ++curX;
+		else if (a == 'e') { exp.pointer = *grid; exp.curX = curX; exp.curY = curY; exp.createExplosive(); explosiveSet = true; }
+		if (explosiveSet == true) exp.tick();
+		if (a == 'x') exitBool = true;
+		draw.grid(arraySize, grid, curX, curY);
+		cout << '\n' << grid[curX][curY] << '\n';
+	} while (!exitBool);
+}
